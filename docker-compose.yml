@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  digitaltrails-app:
+    container_name: digitaltrailsapp
+    build: ./source
+    volumes:
+      - ./source/src:/app/src
+      - ./source/pom.xml:/app/pom.xml
+      - ./source/mvnw:/app/mvnw
+      - ./source/mvnw.cmd:/app/mvnw.cmd
+    expose:
+      - "8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: always
+    depends_on:
+      - digitaltrails-db
+    networks:
+      - trvgway_int
+
+  digitaltrails-db:
+    image: mongo:latest
+    container_name: digitaltrailsdb
+    expose:
+      - "27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE: ${MONGO_DATABASE}   # attractions
+    volumes:
+      - ./db:/data/db
+      - ./default_attraction_info.json:/default_attraction_info.json
+    networks:
+      - trvgway_int
+
+volumes:
+  db:
+
+networks:
+  trvgway_int: 
+    external: true
