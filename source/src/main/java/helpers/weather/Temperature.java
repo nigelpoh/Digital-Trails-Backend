@@ -6,6 +6,7 @@ import types.temperature_realtime_api.RealtimeWeatherResponse;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.lang.Exception;
 
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -17,18 +18,32 @@ public class Temperature {
     Station chosenStation = null;
     double chosenDistance = Double.MAX_VALUE;
     RealtimeWeatherResponse response = null;
-    for (int chance = 1; chance < 3; chance++) {
-      LocalDateTime timeNow = LocalDateTime.now();
-      timeNow = timeNow.withSecond(0).withNano(0).minusMinutes(timeNow.getMinute() % (30 * chance));
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-      System.out.println(timeNow.format(formatter));
-      String url = UriComponentsBuilder.fromUriString("https://api.data.gov.sg/v1/environment/air-temperature")
-            .queryParam("date_time", timeNow.format(formatter))
-            .build(true)
-            .toUri()
-            .toString();
+    for (int chance = 1; chance < 4; chance++) {
+      String url;
+      if(chance != 3){
+        LocalDateTime timeNow = LocalDateTime.now();
+        timeNow = timeNow.withSecond(0).withNano(0).minusMinutes(timeNow.getMinute() % (30 * chance));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        System.out.println(timeNow.format(formatter));
+        url = UriComponentsBuilder.fromUriString("https://api.data.gov.sg/v1/environment/air-temperature")
+              .queryParam("date_time", timeNow.format(formatter))
+              .build(true)
+              .toUri()
+              .toString();
+      }else{
+        url = "https://api.data.gov.sg/v1/environment/air-temperature?date=2023-04-09";
+      }
       RestTemplate restTemplate = new RestTemplate();
       response = restTemplate.getForObject(url, RealtimeWeatherResponse.class);
+      try{
+        if(response.getMetadata().getStations().length == 0){
+          throw new Exception("No results");
+        }
+        System.out.println("No error (Temperature)");
+      } catch (Exception e){
+        System.out.println("Error (Temperature)");
+        continue;
+      }
       for (Station station : response.getMetadata().getStations()) {
         if(chosenStation == null) {
           chosenStation = station;
