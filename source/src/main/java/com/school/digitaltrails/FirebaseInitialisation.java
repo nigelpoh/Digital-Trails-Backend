@@ -9,6 +9,8 @@ import com.google.firebase.FirebaseOptions;
 public class FirebaseInitialisation {
 
   private FirebaseApp instance;
+  
+  private FirebaseInitialisation(){}
 
   public void initialize() {
     if(instance == null){
